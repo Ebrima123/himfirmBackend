@@ -8,12 +8,12 @@ class CustomerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class LeadSerializer(serializers.ModelSerializer):
-    # Write-only fields for creating/updating
     customer_id = serializers.PrimaryKeyRelatedField(
         queryset=Customer.objects.all(),
         source='customer',
         write_only=True
     )
+
     assigned_to_id = serializers.PrimaryKeyRelatedField(
         queryset=EmployeeProfile.objects.all(),
         source='assigned_to',
@@ -21,14 +21,25 @@ class LeadSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
-    
-    # Read-only fields for displaying
+
     customer = CustomerSerializer(read_only=True)
     assigned_to = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Lead
-        fields = '__all__'
+        fields = [
+            'id',
+            'customer_id',
+            'customer',
+            'source',
+            'status',
+            'notes',
+            'assigned_to_id',
+            'assigned_to',
+            'created_at',
+        ]
+
+
 
 class SiteVisitSerializer(serializers.ModelSerializer):
     lead = LeadSerializer(read_only=True)
