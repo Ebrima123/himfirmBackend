@@ -9,7 +9,19 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 class LeadSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer(read_only=True)
-    assigned_to = serializers.StringRelatedField()
+    customer_id = serializers.PrimaryKeyRelatedField(
+        queryset=Customer.objects.all(),
+        source='customer',
+        write_only=True
+    )
+    assigned_to = serializers.StringRelatedField(read_only=True)
+    assigned_to_id = serializers.PrimaryKeyRelatedField(
+        queryset=EmployeeProfile.objects.all(),
+        source='assigned_to',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = Lead
