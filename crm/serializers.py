@@ -1,6 +1,7 @@
 # crm/serializers.py
 from rest_framework import serializers
 from .models import Customer, Lead, SiteVisit, Allocation
+from core.models import EmployeeProfile
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
