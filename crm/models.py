@@ -17,18 +17,38 @@ class Customer(models.Model):
     def __str__(self):
         return self.full_name
 
-class Lead(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='leads')
-    source = models.CharField(max_length=100, blank=True)  # Referral, Website, Walk-in
-    status = models.CharField(max_length=50, default='new', choices=[
-        ('new', 'New'), ('contacted', 'Contacted'), ('site_visit', 'Site Visit'), ('closed', 'Closed')
-    ])
-    assigned_to = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True)
-    notes = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+# crm/serializers.py
+class LeadSerializer(serializers.ModelSerializer):
+    # Use PrimaryKeyRelatedField correctly
+    customer = serializers.PrimaryKeyRelatedField(
+        queryset=Customer.objects.all(),
+        write_only=True
+    )
+    
+    assigned_to = serializers.PrimaryKeyRelatedField(
+        queryset=EmployeeProfile.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    
+    customer_details = CustomerSerializer(source='customer', read_only=True)
+    assigned_to_details = serializers.StringRelatedField(source='assigned_to', read_only=True)
 
-    def __str__(self):
-        return f"{self.customer} - {self.status}"
+    class Meta:
+        model = Lead
+        fields = [
+            'id',
+            'customer',  # This is the ID when writing
+            'customer_details',  # This is the full object when reading
+            'source',
+            'status',
+            'notes',
+            'assigned_to',  # This is the ID when writing
+            'assigned_to_details',  # This is the string when reading
+            'created_at',
+        ]
+
 
 class SiteVisit(models.Model):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='visits')
