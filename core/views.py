@@ -32,7 +32,34 @@ class LoginView(APIView):
                 'mfa_required': user.is_mfa_enabled
             })
         return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
+    
 class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request):
+        """Get current user's profile"""
         serializer = EmployeeProfileSerializer(request.user.profile)
         return Response(serializer.data)
+    
+    def patch(self, request):
+        """Update current user's profile (partial update)"""
+        serializer = EmployeeProfileSerializer(
+            request.user.profile, 
+            data=request.data, 
+            partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request):
+        """Update current user's profile (full update)"""
+        serializer = EmployeeProfileSerializer(
+            request.user.profile, 
+            data=request.data
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
