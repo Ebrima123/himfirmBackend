@@ -1,10 +1,47 @@
 # employees/views.py
 from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
+from core.models import EmployeeProfile
+from core.serializers import EmployeeProfileSerializer
 from .models import LeaveRequest
 from .serializers import LeaveRequestSerializer
+
+
+class EmployeeProfileViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API for viewing employee profiles.
+    - All authenticated users can view employee list (for dropdowns, assignments, etc.)
+    - Read-only: Use /api/auth/profile/ to update your own profile
+    """
+    queryset = EmployeeProfile.objects.filter(is_active=True).select_related(
+        'user', 'department'
+    )
+    serializer_class = EmployeeProfileSerializer
+    permission_classes = [IsAuthenticated]
+    
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter
+    ]
+    
+    filterset_fields = {
+        'position': ['exact', 'in'],
+        'department__name': ['exact', 'icontains'],
+        'is_active': ['exact'],
+    }
+    search_fields = [
+        'user__first_name',
+        'user__last_name',
+        'user__email',
+        'position'
+    ]
+    ordering_fields = ['user__first_name', 'position', 'date_joined']
+    ordering = ['user__first_name']
+
 
 class LeaveRequestViewSet(viewsets.ModelViewSet):
     """
@@ -64,9 +101,12 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         if 'status' in serializer.validated_data:
             new_status = serializer.validated_data['status']
             if new_status != 'pending':
-                if not self.request.user.profile.position in ['HR Manager', 'CEO', 'EDBO'] and \
-                   not ('Manager' in self.request.user.profile.position):
-                    raise serializers.ValidationError("You do not have permission to approve/reject leaves.")
+                user_position = self.request.user.profile.position
+                
+                # Check if user has permission to approve/reject
+                if user_position not in ['HR Manager', 'CEO', 'EDBO'] and \
+                   'Manager' not in user_position:
+                    raise ValidationError("You do not have permission to approve/reject leaves.")
 
                 serializer.save(
                     reviewed_by=self.request.user.profile,
