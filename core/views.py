@@ -2,20 +2,20 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated  # Add IsAuthenticated here
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .serializers import EmployeeProfileSerializer
 
-# core/views.py (update LoginView)
+# Your LoginView (keep as is)
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        email = request.data.get('email')        # Changed from 'username'
+        email = request.data.get('email')
         password = request.data.get('password')
 
-        user = authenticate(request, username=email, password=password)  # authenticate uses email
+        user = authenticate(request, username=email, password=password)
         if user:
             refresh = RefreshToken.for_user(user)
             profile = user.profile
@@ -32,9 +32,11 @@ class LoginView(APIView):
                 'mfa_required': user.is_mfa_enabled
             })
         return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
-    
+
+
+# Your ProfileView (with the fix)
 class ProfileView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]  # Now this will work
     
     def get(self, request):
         """Get current user's profile"""
