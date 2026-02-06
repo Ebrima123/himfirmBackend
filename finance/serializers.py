@@ -9,11 +9,14 @@ class InvoiceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PaymentSerializer(serializers.ModelSerializer):
-    customer = serializers.StringRelatedField()
-    received_by = serializers.StringRelatedField()
+    customer_name = serializers.CharField(source='customer.__str__', read_only=True)
+    received_by_name = serializers.CharField(source='received_by.__str__', read_only=True)
+    
     class Meta:
         model = Payment
-        fields = '__all__'
-
-
-
+        fields = [
+            'id', 'receipt_number', 'payment_date', 'amount', 'payment_method',
+            'customer', 'customer_name',  # customer for write, customer_name for read
+            'invoice', 
+            'received_by', 'received_by_name'  # received_by for write, received_by_name for read
+        ]
