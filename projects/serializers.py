@@ -3,6 +3,7 @@ from rest_framework import serializers
 from .models import LandParcel, Project, ProjectTask
 from documents.serializers import DocumentSerializer
 from core.models import EmployeeProfile
+from rest_framework.permissions import AllowAny
 
 class LandParcelSerializer(serializers.ModelSerializer):
     documents = DocumentSerializer(many=True, read_only=True)
@@ -22,6 +23,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ProjectTaskSerializer(serializers.ModelSerializer):
+    permission_classes = [AllowAny]
     project_name = serializers.CharField(source='project.name', read_only=True)
     assigned_to_name = serializers.CharField(source='assigned_to.user.get_full_name', read_only=True)
 
