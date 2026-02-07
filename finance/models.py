@@ -11,7 +11,13 @@ class Invoice(models.Model):
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     paid_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     status = models.CharField(max_length=20, default='unpaid', choices=[
-        ('unpaid', 'Unpaid'), ('partial', 'Partially Paid'), ('paid', 'Paid')
+        ('draft', 'Draft'),
+        ('sent', 'Sent'),
+        ('unpaid', 'Unpaid'),
+        ('partial', 'Partially Paid'),
+        ('paid', 'Paid'),
+        ('overdue', 'Overdue'),
+        ('cancelled', 'Cancelled')
     ])
 
     def __str__(self):
