@@ -10,11 +10,11 @@ from .models import LeaveRequest
 from .serializers import LeaveRequestSerializer
 
 
-class EmployeeProfileViewSet(viewsets.ReadOnlyModelViewSet):
+class EmployeeProfileViewSet(viewsets.ModelViewSet):  # Changed from ReadOnlyModelViewSet
     """
-    API for viewing employee profiles.
-    - All authenticated users can view employee list (for dropdowns, assignments, etc.)
-    - Read-only: Use /api/auth/profile/ to update your own profile
+    API for managing employee profiles.
+    - HR Manager: Full CRUD access
+    - Other users: Read-only access
     """
     queryset = EmployeeProfile.objects.filter(is_active=True).select_related(
         'user', 'department'
@@ -97,7 +97,7 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(employee=user_profile)
 
     def perform_create(self, serializer):
-        # Add this method to handle creation
+        # Set status to pending when creating
         serializer.save(status='pending')
 
     def perform_update(self, serializer):
