@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status, viewsets  # Added viewsets here
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate , get_user_model
 from .models import Department
 from .serializers import EmployeeProfileSerializer, DepartmentSerializer
 
@@ -36,6 +36,18 @@ class LoginView(APIView):
         return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API for viewing users (for dropdowns, etc.)
+    """
+    queryset = User.objects.all().order_by('email')
+    permission_classes = [IsAuthenticated]
+    
+    def list(self, request, *args, **kwargs):
+        users = self.queryset.values('id', 'email', 'first_name', 'last_name')
+        return Response(list(users))
+    
+    
 # Your ProfileView (with the fix)
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
