@@ -1,11 +1,13 @@
 # core/views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, viewsets 
-from rest_framework.permissions import AllowAny, IsAuthenticated  # Add IsAuthenticated here
+from rest_framework import status, viewsets  # Added viewsets here
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from .serializers import EmployeeProfileSerializer
+from .models import Department
+from .serializers import EmployeeProfileSerializer, DepartmentSerializer
+
 
 # Your LoginView (keep as is)
 class LoginView(APIView):
@@ -36,7 +38,7 @@ class LoginView(APIView):
 
 # Your ProfileView (with the fix)
 class ProfileView(APIView):
-    permission_classes = [IsAuthenticated]  # Now this will work
+    permission_classes = [IsAuthenticated]
     
     def get(self, request):
         """Get current user's profile"""
@@ -65,7 +67,7 @@ class ProfileView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 # Department ViewSet
 class DepartmentViewSet(viewsets.ModelViewSet):
