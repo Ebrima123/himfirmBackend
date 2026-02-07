@@ -1,6 +1,6 @@
 # projects/views.py
 from rest_framework import viewsets, filters
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated , AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import LandParcel, Project, ProjectTask
 from .serializers import (
@@ -66,6 +66,7 @@ class ProjectTaskViewSet(viewsets.ModelViewSet):
     API endpoint for tasks within projects.
     Used by Project Supervisors and assigned team members.
     """
+    permission_classes = [AllowAny]
     queryset = ProjectTask.objects.all().select_related('project', 'assigned_to').order_by('-due_date')
     serializer_class = ProjectTaskSerializer
     permission_classes = [IsAuthenticated]
