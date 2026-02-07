@@ -96,6 +96,10 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         # Regular staff: only their own requests
         return self.queryset.filter(employee=user_profile)
 
+    def perform_create(self, serializer):
+        # Add this method to handle creation
+        serializer.save(status='pending')
+
     def perform_update(self, serializer):
         # Only HR or managers can approve/reject
         if 'status' in serializer.validated_data:
