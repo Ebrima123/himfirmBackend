@@ -1,5 +1,5 @@
 # procurement/views.py
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, serializers
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
@@ -36,7 +36,7 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
         'status': ['exact', 'in'],
         'supplier__id': ['exact'],
         'order_date': ['exact', 'gte', 'lte'],
-        'expected_delivery_date': ['exact', 'gte', 'lte'],
+        'delivery_date': ['exact', 'gte', 'lte'],  # ✅ Changed from expected_delivery_date
     }
     search_fields = ['po_number', 'supplier__name', 'notes']
     ordering_fields = ['order_date', 'total_amount', 'status']
