@@ -65,3 +65,15 @@ class ProfileView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+# Department ViewSet
+class DepartmentViewSet(viewsets.ModelViewSet):
+    """
+    API for managing departments.
+    - All authenticated users can view departments
+    - Only HR Manager can create/update/delete
+    """
+    queryset = Department.objects.all().order_by('name')
+    serializer_class = DepartmentSerializer
+    permission_classes = [IsAuthenticated]
