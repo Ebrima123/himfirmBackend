@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate , get_user_model
 from .models import Department
 from .serializers import EmployeeProfileSerializer, DepartmentSerializer
 
-
+User = get_user_model()
 # Your LoginView (keep as is)
 class LoginView(APIView):
     permission_classes = [AllowAny]
@@ -47,7 +47,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         users = self.queryset.values('id', 'email', 'first_name', 'last_name')
         return Response(list(users))
     
-    
+
 # Your ProfileView (with the fix)
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
