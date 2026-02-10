@@ -9,6 +9,8 @@ from core.models import CustomUser, EmployeeProfile
 
 # ==================== INVOICING & BILLING ====================
 
+# finance/models.py (just the Invoice model part - replace your existing Invoice model)
+
 class Invoice(models.Model):
     INVOICE_TYPE_CHOICES = [
         ('sale', 'Sales Invoice'),
@@ -35,7 +37,7 @@ class Invoice(models.Model):
 
     allocation = models.ForeignKey(Allocation, on_delete=models.PROTECT, null=True, blank=True, related_name='invoices')
     project = models.ForeignKey('projects.Project', on_delete=models.PROTECT, null=True, blank=True, related_name='finance_invoices')
-    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='invoices')
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, null=True, blank=True, related_name='invoices')  # Made nullable
     
     invoice_number = models.CharField(max_length=50, unique=True)
     invoice_type = models.CharField(max_length=20, choices=INVOICE_TYPE_CHOICES, default='sale')
@@ -65,7 +67,7 @@ class Invoice(models.Model):
     approved_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices_approved')
     approved_date = models.DateTimeField(null=True, blank=True)
     
-    created_at = models.DateTimeField(default=timezone.now)  # Changed from auto_now_add
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -77,7 +79,8 @@ class Invoice(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.invoice_number} - {self.customer}"
+        customer_name = self.customer.name if self.customer else "No Customer"
+        return f"{self.invoice_number} - {customer_name}"
 
     @property
     def balance_due(self):
