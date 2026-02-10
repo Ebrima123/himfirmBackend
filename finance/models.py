@@ -4,7 +4,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
 from crm.models import Allocation, Customer
 from core.models import CustomUser, EmployeeProfile
-from projects.models import Project  # Assuming you have a projects app
 
 
 # ==================== INVOICING & BILLING ====================
@@ -33,9 +32,9 @@ class Invoice(models.Model):
         ('void', 'Void'),
     ]
 
-    allocation = models.ForeignKey(Allocation, on_delete=models.PROTECT, null=True, blank=True)
-    project = models.ForeignKey('projects.Project', on_delete=models.PROTECT, null=True, blank=True)
-    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
+    allocation = models.ForeignKey(Allocation, on_delete=models.PROTECT, null=True, blank=True, related_name='invoices')
+    project = models.ForeignKey('projects.Project', on_delete=models.PROTECT, null=True, blank=True, related_name='finance_invoices')
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='invoices')
     
     invoice_number = models.CharField(max_length=50, unique=True)
     invoice_type = models.CharField(max_length=20, choices=INVOICE_TYPE_CHOICES, default='sale')
@@ -120,7 +119,7 @@ class Payment(models.Model):
     ]
 
     invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT, null=True, blank=True, related_name='payments')
-    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='payments')
     
     receipt_number = models.CharField(max_length=50, unique=True)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
@@ -128,14 +127,14 @@ class Payment(models.Model):
     payment_method = models.CharField(max_length=50, choices=PAYMENT_METHOD_CHOICES)
     
     # Payment instrument details
-    reference_number = models.CharField(max_length=100, blank=True, null=True)  # Cheque/DD/Transaction number
+    reference_number = models.CharField(max_length=100, blank=True, null=True)
     bank_name = models.CharField(max_length=100, blank=True, null=True)
     cheque_date = models.DateField(null=True, blank=True)
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='cleared')
     
-    received_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True)
-    deposited_to_account = models.ForeignKey('BankAccount', on_delete=models.SET_NULL, null=True, blank=True)
+    received_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, related_name='payments_received')
+    deposited_to_account = models.ForeignKey('BankAccount', on_delete=models.SET_NULL, null=True, blank=True, related_name='payments_deposited')
     
     notes = models.TextField(blank=True, null=True)
     
@@ -204,8 +203,8 @@ class PurchaseOrder(models.Model):
     ]
 
     po_number = models.CharField(max_length=50, unique=True)
-    vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT)
-    project = models.ForeignKey('projects.Project', on_delete=models.PROTECT, null=True, blank=True)
+    vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT, related_name='purchase_orders')
+    project = models.ForeignKey('projects.Project', on_delete=models.PROTECT, null=True, blank=True, related_name='purchase_orders')
     
     po_date = models.DateField()
     delivery_date = models.DateField()
@@ -269,9 +268,9 @@ class Expense(models.Model):
     ]
 
     expense_number = models.CharField(max_length=50, unique=True)
-    project = models.ForeignKey('projects.Project', on_delete=models.PROTECT, null=True, blank=True)
-    vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT, null=True, blank=True)
-    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.SET_NULL, null=True, blank=True)
+    project = models.ForeignKey('projects.Project', on_delete=models.PROTECT, null=True, blank=True, related_name='expenses')
+    vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT, null=True, blank=True, related_name='expenses')
+    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses')
     
     category = models.CharField(max_length=50, choices=EXPENSE_CATEGORY_CHOICES)
     description = models.TextField()
@@ -282,7 +281,7 @@ class Expense(models.Model):
     total_amount = models.DecimalField(max_digits=15, decimal_places=2)
     
     payment_method = models.CharField(max_length=50, blank=True, null=True)
-    paid_from_account = models.ForeignKey('BankAccount', on_delete=models.SET_NULL, null=True, blank=True)
+    paid_from_account = models.ForeignKey('BankAccount', on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses_paid')
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
@@ -355,8 +354,8 @@ class BankTransaction(models.Model):
     reference_number = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField()
     
-    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True)
-    expense = models.ForeignKey(Expense, on_delete=models.SET_NULL, null=True, blank=True)
+    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True, related_name='bank_transactions')
+    expense = models.ForeignKey(Expense, on_delete=models.SET_NULL, null=True, blank=True, related_name='bank_transactions')
     
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -380,7 +379,7 @@ class Budget(models.Model):
     name = models.CharField(max_length=200)
     budget_type = models.CharField(max_length=20, choices=BUDGET_TYPE_CHOICES)
     
-    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE, null=True, blank=True)
+    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE, null=True, blank=True, related_name='finance_budgets')
     
     start_date = models.DateField()
     end_date = models.DateField()
@@ -391,7 +390,7 @@ class Budget(models.Model):
     
     notes = models.TextField(blank=True, null=True)
     
-    created_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, related_name='budgets_created')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -418,7 +417,7 @@ class BudgetLineItem(models.Model):
 # ==================== FINANCIAL REPORTING ====================
 
 class FinancialPeriod(models.Model):
-    name = models.CharField(max_length=100)  # e.g., "Q1 2024", "FY 2023-24"
+    name = models.CharField(max_length=100)
     start_date = models.DateField()
     end_date = models.DateField()
     is_closed = models.BooleanField(default=False)
@@ -433,7 +432,7 @@ class FinancialPeriod(models.Model):
 
 
 class TaxConfiguration(models.Model):
-    tax_name = models.CharField(max_length=100)  # e.g., "GST", "VAT"
+    tax_name = models.CharField(max_length=100)
     tax_rate = models.DecimalField(max_digits=5, decimal_places=2)
     is_active = models.BooleanField(default=True)
     effective_from = models.DateField()
@@ -465,8 +464,8 @@ class CostCenter(models.Model):
 
 
 class ProjectCost(models.Model):
-    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE)
-    cost_center = models.ForeignKey(CostCenter, on_delete=models.PROTECT)
+    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE, related_name='costs')
+    cost_center = models.ForeignKey(CostCenter, on_delete=models.PROTECT, related_name='project_costs')
     
     date = models.DateField()
     description = models.CharField(max_length=255)
@@ -474,7 +473,7 @@ class ProjectCost(models.Model):
     budgeted_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     actual_amount = models.DecimalField(max_digits=15, decimal_places=2)
     
-    expense = models.ForeignKey(Expense, on_delete=models.SET_NULL, null=True, blank=True)
+    expense = models.ForeignKey(Expense, on_delete=models.SET_NULL, null=True, blank=True, related_name='project_costs')
     
     notes = models.TextField(blank=True, null=True)
     
@@ -492,7 +491,7 @@ class ProjectCost(models.Model):
 class PettyCashAccount(models.Model):
     name = models.CharField(max_length=200)
     account_number = models.CharField(max_length=50, unique=True)
-    custodian = models.ForeignKey(EmployeeProfile, on_delete=models.PROTECT)
+    custodian = models.ForeignKey(EmployeeProfile, on_delete=models.PROTECT, related_name='petty_cash_accounts')
     
     opening_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     current_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -566,8 +565,8 @@ class Asset(models.Model):
     current_value = models.DecimalField(max_digits=15, decimal_places=2)
     
     location = models.CharField(max_length=200, blank=True, null=True)
-    assigned_to = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True)
-    project = models.ForeignKey('projects.Project', on_delete=models.SET_NULL, null=True, blank=True)
+    assigned_to = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_assets')
+    project = models.ForeignKey('projects.Project', on_delete=models.SET_NULL, null=True, blank=True, related_name='assets')
     
     is_active = models.BooleanField(default=True)
     disposal_date = models.DateField(null=True, blank=True)
@@ -611,11 +610,11 @@ class CommissionStructure(models.Model):
 
 
 class Commission(models.Model):
-    employee = models.ForeignKey(EmployeeProfile, on_delete=models.PROTECT, null=True, blank=True)
+    employee = models.ForeignKey(EmployeeProfile, on_delete=models.PROTECT, null=True, blank=True, related_name='commissions')
     broker_name = models.CharField(max_length=200, blank=True, null=True)
     
-    allocation = models.ForeignKey(Allocation, on_delete=models.PROTECT)
-    structure = models.ForeignKey(CommissionStructure, on_delete=models.PROTECT)
+    allocation = models.ForeignKey(Allocation, on_delete=models.PROTECT, related_name='commissions')
+    structure = models.ForeignKey(CommissionStructure, on_delete=models.PROTECT, related_name='commissions')
     
     base_amount = models.DecimalField(max_digits=15, decimal_places=2)
     commission_amount = models.DecimalField(max_digits=15, decimal_places=2)
