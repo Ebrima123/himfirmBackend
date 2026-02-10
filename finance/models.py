@@ -1,6 +1,7 @@
 # finance/models.py
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 from decimal import Decimal
 from crm.models import Allocation, Customer
 from core.models import CustomUser, EmployeeProfile
@@ -60,11 +61,11 @@ class Invoice(models.Model):
     terms_and_conditions = models.TextField(blank=True, null=True)
     
     # Tracking
-    created_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, related_name='invoices_created')
+    created_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices_created')
     approved_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices_approved')
     approved_date = models.DateTimeField(null=True, blank=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)  # Changed from auto_now_add
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -133,12 +134,12 @@ class Payment(models.Model):
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='cleared')
     
-    received_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, related_name='payments_received')
+    received_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='payments_received')
     deposited_to_account = models.ForeignKey('BankAccount', on_delete=models.SET_NULL, null=True, blank=True, related_name='payments_deposited')
     
     notes = models.TextField(blank=True, null=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)  # Changed from auto_now_add
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -184,7 +185,7 @@ class Vendor(models.Model):
     
     is_active = models.BooleanField(default=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -219,10 +220,10 @@ class PurchaseOrder(models.Model):
     terms_and_conditions = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     
-    created_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, related_name='pos_created')
+    created_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='pos_created')
     approved_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='pos_approved')
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -287,12 +288,12 @@ class Expense(models.Model):
     
     receipt_file = models.FileField(upload_to='expense_receipts/', blank=True, null=True)
     
-    submitted_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, related_name='expenses_submitted')
+    submitted_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses_submitted')
     approved_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses_approved')
     
     notes = models.TextField(blank=True, null=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -328,7 +329,7 @@ class BankAccount(models.Model):
     is_active = models.BooleanField(default=True)
     is_primary = models.BooleanField(default=False)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -357,7 +358,7 @@ class BankTransaction(models.Model):
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True, related_name='bank_transactions')
     expense = models.ForeignKey(Expense, on_delete=models.SET_NULL, null=True, blank=True, related_name='bank_transactions')
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ['-transaction_date']
@@ -390,8 +391,8 @@ class Budget(models.Model):
     
     notes = models.TextField(blank=True, null=True)
     
-    created_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, related_name='budgets_created')
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='budgets_created')
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -422,7 +423,7 @@ class FinancialPeriod(models.Model):
     end_date = models.DateField()
     is_closed = models.BooleanField(default=False)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ['-start_date']
@@ -440,7 +441,7 @@ class TaxConfiguration(models.Model):
     
     description = models.TextField(blank=True, null=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.tax_name} - {self.tax_rate}%"
@@ -457,7 +458,7 @@ class CostCenter(models.Model):
     
     is_active = models.BooleanField(default=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.code} - {self.name}"
@@ -477,7 +478,7 @@ class ProjectCost(models.Model):
     
     notes = models.TextField(blank=True, null=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ['-date']
@@ -499,7 +500,7 @@ class PettyCashAccount(models.Model):
     
     is_active = models.BooleanField(default=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -526,7 +527,7 @@ class PettyCashTransaction(models.Model):
     requested_by = models.ForeignKey(EmployeeProfile, on_delete=models.PROTECT, related_name='petty_cash_requests')
     approved_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='petty_cash_approvals')
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ['-transaction_date']
@@ -574,7 +575,7 @@ class Asset(models.Model):
     
     notes = models.TextField(blank=True, null=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -603,7 +604,7 @@ class CommissionStructure(models.Model):
     
     is_active = models.BooleanField(default=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.name
@@ -630,7 +631,7 @@ class Commission(models.Model):
     
     notes = models.TextField(blank=True, null=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"Commission - {self.allocation} - {self.commission_amount}"
