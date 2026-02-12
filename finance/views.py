@@ -50,7 +50,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         return InvoiceSerializer
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user.employeeprofile)
+        serializer.save(created_by=self.request.user.profile)
 
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
@@ -64,7 +64,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             )
         
         invoice.status = 'approved'
-        invoice.approved_by = request.user.employeeprofile
+        invoice.approved_by = request.user.profile
         invoice.approved_date = timezone.now()
         invoice.save()
         
@@ -165,7 +165,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
         return PaymentSerializer
 
     def perform_create(self, serializer):
-        payment = serializer.save(received_by=self.request.user.employeeprofile)
+        payment = serializer.save(submitted_by=self.request.user.profile)
         
         # Update invoice paid amount if linked
         if payment.invoice:
