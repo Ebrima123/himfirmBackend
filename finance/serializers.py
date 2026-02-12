@@ -77,7 +77,7 @@ class InvoiceDetailSerializer(InvoiceSerializer):
 # ==================== PAYMENT SERIALIZERS ====================
 
 class PaymentSerializer(serializers.ModelSerializer):
-    customer_name = serializers.CharField(source='customer.name', read_only=True)
+    customer_name = serializers.CharField(source='customer.full_name', read_only=True)
     received_by_name = serializers.CharField(source='received_by.__str__', read_only=True)
     invoice_number = serializers.CharField(source='invoice.invoice_number', read_only=True)
     account_name = serializers.CharField(source='deposited_to_account.account_name', read_only=True)
@@ -190,8 +190,8 @@ class ExpenseSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source='project.name', read_only=True)
     vendor_name = serializers.CharField(source='vendor.name', read_only=True)
     po_number = serializers.CharField(source='purchase_order.po_number', read_only=True)
-    submitted_by_name = serializers.CharField(source='submitted_by.__str__', read_only=True)
-    approved_by_name = serializers.CharField(source='approved_by.__str__', read_only=True)
+    # submitted_by_name = serializers.CharField(source='submitted_by.__str__', read_only=True)
+    # approved_by_name = serializers.CharField(source='approved_by.__str__', read_only=True)
     account_name = serializers.CharField(source='paid_from_account.account_name', read_only=True)
     category_display = serializers.CharField(source='get_category_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
