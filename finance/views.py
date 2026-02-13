@@ -304,7 +304,7 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
         return PurchaseOrderSerializer
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user.employeeprofile)
+        serializer.save(created_by=self.request.user.profile)
 
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
@@ -318,7 +318,7 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
             )
         
         po.status = 'approved'
-        po.approved_by = request.user.employeeprofile
+        po.approved_by = request.user.profile
         po.save()
         
         return Response({'status': 'Purchase order approved'})
@@ -371,7 +371,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         return ExpenseSerializer
 
     def perform_create(self, serializer):
-        serializer.save(submitted_by=self.request.user.employeeprofile)
+        serializer.save(submitted_by=self.request.user.profile)
 
     @action(detail=True, methods=['post'], permission_classes=[CanApproveExpenses])
     def approve(self, request, pk=None):
@@ -525,7 +525,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
         return BudgetSerializer
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user.employeeprofile)
+        serializer.save(created_by=self.request.user.profile)
 
     @action(detail=True, methods=['get'])
     def variance_analysis(self, request, pk=None):
@@ -623,8 +623,8 @@ class PettyCashAccountViewSet(viewsets.ModelViewSet):
             amount=amount,
             balance_after=account.current_balance + amount,
             description='Petty cash replenishment',
-            requested_by=request.user.employeeprofile,
-            approved_by=request.user.employeeprofile
+            requested_by=request.user.profile,
+            approved_by=request.user.profile
         )
         
         account.current_balance += amount
