@@ -130,7 +130,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         if not change:  # Creating new invoice
-            obj.created_by = request.user.profile
+            obj.created_by = request.user.employeeprofile
         super().save_model(request, obj, form, change)
 
 
