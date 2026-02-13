@@ -165,7 +165,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
         return PaymentSerializer
 
     def perform_create(self, serializer):
-        payment = serializer.save(submitted_by=self.request.user.profile)
+    payment = serializer.save(received_by=self.request.user.profile)
+
         
         # Update invoice paid amount if linked
         if payment.invoice:
