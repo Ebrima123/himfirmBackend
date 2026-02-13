@@ -384,7 +384,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             )
         
         expense.status = 'approved'
-        expense.approved_by = request.user.employeeprofile
+        expense.approved_by = request.user.profile
         expense.save()
         
         return Response({'status': 'Expense approved'})
@@ -395,7 +395,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         expense = self.get_object()
         
         expense.status = 'rejected'
-        expense.approved_by = request.user.employeeprofile
+        expense.approved_by = request.user.profile
         expense.notes = request.data.get('rejection_reason', '')
         expense.save()
         
