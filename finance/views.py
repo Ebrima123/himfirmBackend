@@ -7,7 +7,7 @@ from django.db.models import Sum, Q, F, Count
 from django.utils import timezone
 from datetime import datetime, timedelta
 from decimal import Decimal
-
+from django.db import transaction
 from .models import (
     Invoice, InvoiceLineItem, Payment, Vendor, PurchaseOrder, 
     PurchaseOrderItem, Expense, BankAccount, BankTransaction,
@@ -370,8 +370,23 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             return ExpenseDetailSerializer
         return ExpenseSerializer
 
+    
+
     def perform_create(self, serializer):
-        serializer.save(submitted_by=self.request.user.profile)
+        with transaction.atomic():
+            last_expense = Expense.objects.select_for_update().order_by('-id').first()
+        
+            if last_expense:
+                last_id = last_expense.id
+                expense_number = f"EXP-{last_id + 1:05d}"
+            else:
+                expense_number = "EXP-00001"
+
+            serializer.save(
+                expense_number=expense_number,
+                submitted_by=self.request.user.profile
+            )
+
 
     @action(detail=True, methods=['post'], permission_classes=[CanApproveExpenses])
     def approve(self, request, pk=None):
