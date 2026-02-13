@@ -130,7 +130,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         if not change:  # Creating new invoice
-            obj.created_by = request.user.employeeprofile
+            obj.created_by = request.user.profile
         super().save_model(request, obj, form, change)
 
 
@@ -204,7 +204,7 @@ class PaymentAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.received_by = request.user.employeeprofile
+            obj.received_by = request.user.profile
         super().save_model(request, obj, form, change)
 
 
@@ -312,7 +312,7 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.created_by = request.user.employeeprofile
+            obj.created_by = request.user.profile
         super().save_model(request, obj, form, change)
 
 
@@ -385,7 +385,7 @@ class ExpenseAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.submitted_by = request.user.employeeprofile
+            obj.submitted_by = request.user.profile
         super().save_model(request, obj, form, change)
 
 
