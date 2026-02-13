@@ -190,8 +190,15 @@ class ExpenseSerializer(serializers.ModelSerializer):
     project_name = serializers.CharField(source='project.name', read_only=True)
     vendor_name = serializers.CharField(source='vendor.name', read_only=True)
     po_number = serializers.CharField(source='purchase_order.po_number', read_only=True)
-    submitted_by_name = serializers.CharField(source='submitted_by.__str__', read_only=True)
-    approved_by_name = serializers.CharField(source='approved_by.__str__', read_only=True)
+    submitted_by_name = serializers.StringRelatedField(
+    source='submitted_by',
+    read_only=True
+)
+
+approved_by_name = serializers.StringRelatedField(
+    source='approved_by',
+    read_only=True
+)
     account_name = serializers.CharField(source='paid_from_account.account_name', read_only=True)
     category_display = serializers.CharField(source='get_category_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)

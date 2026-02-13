@@ -5,7 +5,7 @@ from django.utils import timezone
 from decimal import Decimal
 from crm.models import Allocation, Customer
 from core.models import CustomUser, EmployeeProfile
-
+from django.conf import settings
 
 # ==================== INVOICING & BILLING ====================
 
@@ -291,8 +291,21 @@ class Expense(models.Model):
     
     receipt_file = models.FileField(upload_to='expense_receipts/', blank=True, null=True)
     
-    submitted_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses_submitted')
-    approved_by = models.ForeignKey(EmployeeProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses_approved')
+   submitted_by = models.ForeignKey(
+    'accounts.EmployeeProfile',
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name='expenses_submitted'
+)
+
+approved_by = models.ForeignKey(
+    'accounts.EmployeeProfile',
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name='expenses_approved'
+)
     
     notes = models.TextField(blank=True, null=True)
     
